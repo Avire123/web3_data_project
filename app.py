@@ -20,9 +20,17 @@ class FallbackLogisticRegression:
     """Fallback classifier wrapper matching the class name from script 03."""
 
     def __init__(self, weights, intercept, feature_names=None):
-        self.weights = np.array(weights)
+        self.weights = np.array(weights, dtype=float)
         self.intercept = float(intercept)
         self.feature_names = feature_names or []
+        self.coef_ = self.weights.reshape(1, -1)
+
+    def __setstate__(self, state):
+        """Support older/newer pickles where intercept may be missing."""
+        self.__dict__.update(state)
+        self.weights = np.asarray(getattr(self, "weights", []), dtype=float)
+        self.intercept = float(getattr(self, "intercept", 0.0))
+        self.feature_names = getattr(self, "feature_names", [])
         self.coef_ = self.weights.reshape(1, -1)
 
     def predict_proba(self, X):
